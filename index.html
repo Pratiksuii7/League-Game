@@ -3,8 +3,7 @@
   <head>
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+      rel="stylesheet"/>
     <meta charset="UTF-8" />
 <meta name="keywords" content="
 prynix football league, prasoon kandel, pratik chalise, football simulation game, league simulator,
@@ -40,7 +39,204 @@ european football league sim, football tactics tester, live points table generat
 ">
 
     <title> Prynix League Simulation with Player Stats & Awards</title>
-    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* === GAME SIMULATION STYLESHEET === */
+      /* === GAME SIMULATION THEME === */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .section,
+      table,
+      input,
+      button {
+        max-width: 100%;
+      }
+      :root {
+        --primary: #00ff88;
+        --primary-hover: #00e676;
+        --bg: #0a0f13;
+        --card: #121a21;
+        --text: #e0f7fa;
+        --border: #1f2b33;
+        --shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        --transition: 0.3s ease;
+      }
+
+      body {
+        font-family: "Orbitron", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 1rem;
+      }
+
+      h1,
+      h2,
+      h3 {
+        text-align: center;
+        color: var(--primary);
+        text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      }
+
+      .section {
+        background: var(--card);
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+        margin: 2rem auto;
+        padding: 2rem;
+        max-width: 900px;
+        border: 1px solid var(--border);
+        transition: transform var(--transition);
+      }
+      .section:hover {
+        transform: translateY(-2px);
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        padding: 1rem;
+        margin: 0.5rem 0 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background: #1b262f;
+        color: var(--text);
+        font-size: 1rem;
+        transition: border var(--transition), box-shadow var(--transition);
+      }
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 10px var(--primary);
+        outline: none;
+      }
+
+      button {
+        background: var(--primary);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        color: #000;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background var(--transition), transform var(--transition);
+        display: inline-block;
+        margin: 0.5rem 0;
+      }
+
+      button:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-3px);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        border-radius: 0.8rem;
+      }
+
+      th,
+      td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        text-align: center;
+      }
+
+      th {
+        background: #18242d;
+        color: var(--primary);
+      }
+
+      tr:nth-child(even) {
+        background: #10171d;
+      }
+
+      tr:hover {
+        background: #15202b;
+      }
+
+      .popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn var(--transition);
+        z-index: 9999;
+      }
+
+      .popup-content {
+        background: var(--card);
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        animation: slideUp var(--transition);
+      }
+      #siteFooter {
+        text-align: center;
+        padding: 10px;
+        background-color: var(--card);
+        color: var(--text);
+        border-top: 1px solid var(--border);
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        font-size: 14px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .section {
+          padding: 1.2rem;
+        }
+
+        button {
+          width: 100%;
+          margin: 0.5rem 0;
+        }
+      }
+    </style>
     <script src="script.js" defer></script>
   </head>
   <body>
