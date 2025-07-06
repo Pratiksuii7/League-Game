@@ -18,8 +18,19 @@
 
       // ----------------- PLAYER NAMES -----------------
       const samplePlayers = [
-        "Lionel Messi",
         "Cristiano Ronaldo",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Diogo Jota",
+        "Lionel Messi",
         "Neymar Jr",
         "Kylian Mbappé",
         "Kevin De Bruyne",
