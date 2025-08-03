@@ -764,8 +764,8 @@
         if (homeScore < 0 || awayScore < 0)
           return alert("Scores must be non-negative!");
 
-        updateTeamStats(match);
-                distributePlayerStats(match, match.homeScore, match.awayScore);
+        updateTeamStats(m);
+        distributePlayerStats(m, homeScore, awayScore);
 
         currentMatchIndex++;
         renderCurrentMatch();
