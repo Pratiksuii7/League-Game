@@ -765,7 +765,8 @@
           return alert("Scores must be non-negative!");
 
         updateTeamStats(m);
-        distributePlayerStats(m, homeScore, awayScore);
+                distributePlayerStats(match, match.homeScore, match.awayScore);
+
         currentMatchIndex++;
         renderCurrentMatch();
         renderLeagueTable();
