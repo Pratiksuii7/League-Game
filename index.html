@@ -40,244 +40,248 @@ football manager web template, free football UI kit, best football simulator, fo
 european football league sim, football tactics tester, live points table generator, simulation-based football game
 ">
 
-    <title> Prynix League Simulation with Player Stats & Awards</title>
+    <title> Pratik League Simulation with Player Stats & Awards</title>
     <style>
-      /* === GAME SIMULATION STYLESHEET === */
-      /* === GAME SIMULATION THEME === */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
-        overflow-x: hidden;
-      }
+    /* === NEW PRYNIX LEAGUE SIMULATION STYLESHEET === */
+/* === CLASSIC FOOTBALL BROADCAST THEME === */
 
-      * {
-        box-sizing: border-box;
-      }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@400;600;700&display=swap');
 
-      .section,
-      table,
-      input,
-      button {
-        max-width: 100%;
-      }
-      :root {
-        --primary: #00ff88;
-        --primary-hover: #00e676;
-        --bg: #0a0f13;
-        --card: #121a21;
-        --text: #e0f7fa;
-        --border: #1f2b33;
-        --shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-        --transition: 0.3s ease;
-      }
-
-      body {
-        font-family: "Orbitron", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        margin: 0;
-        padding: 1rem;
-      }
-
-      h1,
-      h2,
-      h3 {
-        text-align: center;
-        color: var(--primary);
-        text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-      }
-
-      .section {
-        background: var(--card);
-        border-radius: 1rem;
-        box-shadow: var(--shadow);
-        margin: 2rem auto;
-        padding: 2rem;
-        max-width: 900px;
-        border: 1px solid var(--border);
-        transition: transform var(--transition);
-      }
-      .section:hover {
-        transform: translateY(-2px);
-      }
-
-      input[type="text"],
-      input[type="number"] {
-        width: 100%;
-        padding: 1rem;
-        margin: 0.5rem 0 1rem;
-        border-radius: 0.5rem;
-        border: 1px solid var(--border);
-        background: #1b262f;
-        color: var(--text);
-        font-size: 1rem;
-        transition: border var(--transition), box-shadow var(--transition);
-      }
-      input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 10px var(--primary);
-        outline: none;
-      }
-
-      button {
-        background: var(--primary);
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.8rem 1.5rem;
-        color: #000;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background var(--transition), transform var(--transition);
-        display: inline-block;
-        margin: 0.5rem 0;
-      }
-
-      button:hover:not(:disabled) {
-        background: var(--primary-hover);
-        transform: translateY(-3px);
-      }
-
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        border: 1px solid var(--border);
-        overflow: hidden;
-        border-radius: 0.8rem;
-      }
-
-      th,
-      td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border);
-        text-align: center;
-      }
-
-      th {
-        background: #18242d;
-        color: var(--primary);
-      }
-
-      tr:nth-child(even) {
-        background: #10171d;
-      }
-
-      tr:hover {
-        background: #15202b;
-      }
-
-      .popup-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn var(--transition);
-        z-index: 9999;
-      }
-
-      .popup-content {
-        background: var(--card);
-        border-radius: 1rem;
-        padding: 2rem;
-        max-width: 600px;
-        max-height: 90vh;
-        overflow-y: auto;
-        border: 1px solid var(--border);
-        animation: slideUp var(--transition);
-      }
-      #siteFooter {
-        text-align: center;
-        padding: 10px;
-        background-color: var(--card);
-        color: var(--text);
-        border-top: 1px solid var(--border); 
-        bottom: 0;
-        width: 100%;
-        font-size: 14px;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(30px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-     /* Responsive - Improved for Mobile */
-@media (max-width: 768px) {
-  body {
-    padding: 0.5rem;
-    font-size: 0.95rem;
-  }
-
-  h1, h2, h3 {
-    font-size: 1.5rem;
-    line-height: 1.2;
-    padding: 0 0.5rem;
-  }
-
-  .section {
-    padding: 1rem;
-    margin: 1rem auto;
-    border-radius: 0.5rem;
-  }
-
-  input[type="text"],
-  input[type="number"] {
-    padding: 0.75rem;
-    font-size: 0.95rem;
-  }
-
-  button {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    margin: 0.5rem 0;
-  }
-
-  table {
-    font-size: 0.9rem;
-  }
-
-  th,
-  td {
-    padding: 0.5rem;
-  }
-
-  .popup-content {
-    padding: 1rem;
-    max-width: 90%;
-  }
-
-  #siteFooter {
-    font-size: 12px;
-    padding: 8px;
-  }
+:root {
+    --primary-color: #FFD700; /* Gold */
+    --secondary-color: #ffffff; /* White */
+    --background-dark: #001f3f; /* Deep Blue */
+    --card-bg: #002b5c; /* Slightly Lighter Blue */
+    --border-color: #4a678f; /* Muted Blue-Gray */
+    --text-color: #f0f4f8; /* Off-White */
+    --table-header: #1a4371; /* Darker Blue for Headers */
+    --table-row-even: #01336a; /* Slightly lighter row */
+    --highlight-red: #d62828; /* Highlight for negative stats or alerts */
+    --transition-speed: 0.3s;
+    --font-heading: 'Orbitron', sans-serif;
+    --font-body: 'Montserrat', sans-serif;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* === BASE STYLES & LAYOUT === */
+html, body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--background-dark);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 2rem;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: auto;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    text-align: center;
+    color: var(--primary-color);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1px;
+    margin-top: 0;
+}
+
+/* === SECTION & CARD STYLES === */
+.section {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* === INPUT & BUTTON STYLES === */
+input[type="text"],
+input[type="number"] {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    margin: 0.75rem 0 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background: #00234a;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    transition: all var(--transition-speed) ease;
+}
+
+input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 8px var(--primary-color);
+    outline: none;
+    background: #01336a;
+}
+
+button {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 2rem;
+   margin: 2px;
+    color: var(--background-dark);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:hover:not(:disabled) {
+    background: #e6c500;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(-1px) scale(1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* === TABLE STYLES === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    border-radius: 0.8rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+th, td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+    font-family: var(--font-body);
+}
+
+th {
+    background: var(--table-header);
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+tr:nth-child(even) {
+    background: var(--table-row-even);
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* === POPUP STYLES === */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.4s ease forwards;
+    z-index: 9999;
+}
+
+.popup-content {
+    background: var(--card-bg);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    max-width: 700px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--primary-color);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    animation: slideUp 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+/* === FOOTER STYLES === */
+#siteFooter {
+    text-align: center;
+    padding: 15px;
+    margin-top: 2rem;
+    background-color: var(--background-dark);
+    color: var(--text-color);
+    font-family: var(--font-body);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+/* === KEYFRAME ANIMATIONS === */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px) scale(0.9); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .section {
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+    }
+
+    input, button {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    th, td {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+}
     </style>
     <script src="script.js" defer></script>
   </head>
@@ -285,4 +289,4 @@ european football league sim, football tactics tester, live points table generat
     <h1>League Tournament Generator with Player Stats & Awards</h1>
     <div id="app"></div>
     <div id="popup" style="display: none"></div>
-    <footer id="siteFooter">All copyrights reserved Prynix &copy;</footer>
+    <footer id="siteFooter">All copyrights reserved Pratik Chalise &copy;</footer>
