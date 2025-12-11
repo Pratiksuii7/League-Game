@@ -40,27 +40,94 @@ function generateTeams(count, customNames = []) {
     return color;
   }
 
-  // Create a pool of players to distribute
-  // We want to ensure we have enough players. If count * 17 > playerDatabase.length, we might need to reuse or generate randoms.
-  // Let's just pick random players from the DB for each team, ensuring uniqueness within the team, but maybe not across the league if the league is huge.
-  // Or better: Shuffle the database and distribute.
+  // Separate players by position and rating (Unique vs Common)
+  const uniquePool = {
+      GK: playerDatabase.filter(p => p.position === "GK" && p.rating >= 95),
+      DEF: playerDatabase.filter(p => p.position === "DEF" && p.rating >= 95),
+      MID: playerDatabase.filter(p => p.position === "MID" && p.rating >= 95),
+      FWD: playerDatabase.filter(p => p.position === "FWD" && p.rating >= 95)
+  };
   
-  let availablePlayers = [...playerDatabase];
-  shuffleArray(availablePlayers);
+  const commonPool = {
+      GK: playerDatabase.filter(p => p.position === "GK" && p.rating < 95),
+      DEF: playerDatabase.filter(p => p.position === "DEF" && p.rating < 95),
+      MID: playerDatabase.filter(p => p.position === "MID" && p.rating < 95),
+      FWD: playerDatabase.filter(p => p.position === "FWD" && p.rating < 95)
+  };
+
+  // Shuffle unique pools
+  Object.values(uniquePool).forEach(shuffleArray);
   
   for (let i = 0; i < count; i++) {
     let teamPlayers = [];
-    
-    // Try to get unique players from the DB first
-    for(let j=0; j<17; j++) {
-        if(availablePlayers.length > 0) {
-            const pData = availablePlayers.pop();
-            teamPlayers.push(createPlayerObject(pData.name, pData.rating));
-        } else {
-            // Run out of unique DB players, generate random ones
-            const randomName = `Player ${randomInt(1, 1000)}`;
-            teamPlayers.push(createPlayerObject(randomName, getPlayerRating(randomName)));
+    const teamPlayerNames = new Set();
+
+    // Helper to add player
+    const addPlayer = (pos) => {
+        let pData = null;
+        let useUnique = false;
+        const uPool = uniquePool[pos];
+
+        // Determine if we should use a unique player
+        if (uPool.length > 0) {
+            // Estimate remaining slots for this position across all remaining teams
+            let slotsPerTeam = 1;
+            if (pos === 'GK') slotsPerTeam = 2;
+            if (pos === 'DEF') slotsPerTeam = 5; // 4 + 1 flex approx
+            if (pos === 'MID') slotsPerTeam = 4; // 3 + 1 flex approx
+            if (pos === 'FWD') slotsPerTeam = 4; // 3 + 1 flex approx
+            
+            const remainingTeams = count - i;
+            const remainingSlots = remainingTeams * slotsPerTeam;
+            
+            // Probability to pick unique = (Available Unique) / (Remaining Slots)
+            // We multiply by 1.5 to be slightly aggressive in using them up, ensuring they don't get left over
+            const prob = (uPool.length / remainingSlots) * 1.5;
+            
+            if (Math.random() < prob) {
+                useUnique = true;
+            }
         }
+
+        if (useUnique) {
+            pData = uPool.pop(); // Remove from pool (Unique)
+        } else {
+            // Use common pool (Stackable - don't remove)
+            const cPool = commonPool[pos];
+            if (cPool.length > 0) {
+                let attempts = 0;
+                do {
+                    pData = cPool[Math.floor(Math.random() * cPool.length)];
+                    attempts++;
+                } while (teamPlayerNames.has(pData.name) && attempts < 15);
+            }
+        }
+
+        // Fallback if no player found
+        if (!pData) {
+            pData = { name: `${pos} ${randomInt(1,1000)}`, rating: randomInt(60,85), position: pos };
+        }
+
+        teamPlayerNames.add(pData.name);
+        teamPlayers.push(createPlayerObject(pData.name, pData.rating, pData.position));
+    };
+    
+    // Add 2 GK
+    for(let j=0; j<2; j++) addPlayer("GK");
+    
+    // Add 4 DEF minimum
+    for(let j=0; j<4; j++) addPlayer("DEF");
+    
+    // Add 3 MID minimum
+    for(let j=0; j<3; j++) addPlayer("MID");
+    
+    // Add 3 FWD minimum
+    for(let j=0; j<3; j++) addPlayer("FWD");
+    
+    // Add remaining 5 players randomly from available positions
+    for(let j=0; j<5; j++) {
+        const randomPos = ["DEF", "MID", "FWD"][randomInt(0, 2)];
+        addPlayer(randomPos);
     }
 
     teams.push({
@@ -85,15 +152,60 @@ function generateRandomPlayersForTeam(index) {
   if (!teams[index]) return;
   teams[index].players = [];
   
-  // Refill with random players from DB
-  for(let i=0; i<17; i++) {
-      const pData = getRandomPlayerFromDB();
-      // Ensure uniqueness in this team
-      if(teams[index].players.some(p => p.name === pData.name)) {
-          i--; // try again
-          continue;
+  let gkPlayers = playerDatabase.filter(p => p.position === "GK");
+  let defPlayers = playerDatabase.filter(p => p.position === "DEF");
+  let midPlayers = playerDatabase.filter(p => p.position === "MID");
+  let fwdPlayers = playerDatabase.filter(p => p.position === "FWD");
+  
+  shuffleArray(gkPlayers);
+  shuffleArray(defPlayers);
+  shuffleArray(midPlayers);
+  shuffleArray(fwdPlayers);
+  
+  // Add 2 GK
+  for(let j=0; j<2; j++) {
+      if(gkPlayers.length > 0) {
+          const pData = gkPlayers.pop();
+          teams[index].players.push(createPlayerObject(pData.name, pData.rating, pData.position));
       }
-      teams[index].players.push(createPlayerObject(pData.name, pData.rating));
+  }
+  
+  // Add 4 DEF
+  for(let j=0; j<4; j++) {
+      if(defPlayers.length > 0) {
+          const pData = defPlayers.pop();
+          teams[index].players.push(createPlayerObject(pData.name, pData.rating, pData.position));
+      }
+  }
+  
+  // Add 3 MID
+  for(let j=0; j<3; j++) {
+      if(midPlayers.length > 0) {
+          const pData = midPlayers.pop();
+          teams[index].players.push(createPlayerObject(pData.name, pData.rating, pData.position));
+      }
+  }
+  
+  // Add 3 FWD
+  for(let j=0; j<3; j++) {
+      if(fwdPlayers.length > 0) {
+          const pData = fwdPlayers.pop();
+          teams[index].players.push(createPlayerObject(pData.name, pData.rating, pData.position));
+      }
+  }
+  
+  // Add remaining 5 random
+  for(let j=0; j<5; j++) {
+      const allRemaining = [...defPlayers, ...midPlayers, ...fwdPlayers];
+      if(allRemaining.length > 0) {
+          shuffleArray(allRemaining);
+          const pData = allRemaining[0];
+          teams[index].players.push(createPlayerObject(pData.name, pData.rating, pData.position));
+          
+          if(pData.position === "DEF") defPlayers = defPlayers.filter(p => p.name !== pData.name);
+          else if(pData.position === "MID") midPlayers = midPlayers.filter(p => p.name !== pData.name);
+          else fwdPlayers = fwdPlayers.filter(p => p.name !== pData.name);
+      }
   }
 }
 
@@ -150,10 +262,23 @@ function calculateMatchScore(home, away) {
   return { homeScore, awayScore };
 }
 
-function getWeightedRandomPlayer(players) {
+function getWeightedRandomPlayer(players, positionWeights = {}) {
   if (!players || players.length === 0) return null;
-  // Weight = rating^5 to strongly favor better players
-  const weights = players.map((p) => Math.pow(p.rating || 70, 5));
+  
+  // Default position weights (1.0 = normal)
+  const defaultWeights = {
+    "GK": positionWeights.GK || 0.01,
+    "DEF": positionWeights.DEF || 0.3,
+    "MID": positionWeights.MID || 1.0,
+    "FWD": positionWeights.FWD || 2.5
+  };
+  
+  // Weight = rating^4 * position multiplier
+  const weights = players.map((p) => {
+    const posWeight = defaultWeights[p.position] || 1.0;
+    return Math.pow(p.rating || 70, 4) * posWeight;
+  });
+  
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   let r = Math.random() * totalWeight;
 
@@ -165,51 +290,54 @@ function getWeightedRandomPlayer(players) {
 }
 
 function distributePlayerStats(match, homeScore, awayScore) {
-  // Goals & Assists
+  // Goals & Assists with position-based weights
+  const goalWeights = { GK: 0.001, DEF: 0.2, MID: 1.2, FWD: 3.0 };
+  const assistWeights = { GK: 0.01, DEF: 0.5, MID: 2.0, FWD: 1.5 };
+  
   for (let i = 0; i < homeScore; i++) {
-    let scorer = getWeightedRandomPlayer(match.home.players);
+    let scorer = getWeightedRandomPlayer(match.home.players, goalWeights);
     if (scorer) scorer.goals++;
-    let assister = getWeightedRandomPlayer(match.home.players);
+    let assister = getWeightedRandomPlayer(match.home.players, assistWeights);
     if (assister && assister !== scorer) assister.assists++;
   }
   for (let i = 0; i < awayScore; i++) {
-    let scorer = getWeightedRandomPlayer(match.away.players);
+    let scorer = getWeightedRandomPlayer(match.away.players, goalWeights);
     if (scorer) scorer.goals++;
-    let assister = getWeightedRandomPlayer(match.away.players);
+    let assister = getWeightedRandomPlayer(match.away.players, assistWeights);
     if (assister && assister !== scorer) assister.assists++;
   }
 
-  // Cards, Penalties, Freekicks, Passing
+  // Cards, Penalties, Freekicks, Passing - Position-based
   [match.home.players, match.away.players].forEach(teamPlayers => {
       teamPlayers.forEach(p => {
-          // Cards
-          if (randomInt(1, 20) === 1) p.yellowCards++;
-          if (randomInt(1, 50) === 1) p.redCards++;
+          // Cards (DEF and MID more likely to get cards)
+          let cardChance = p.position === "DEF" ? 15 : p.position === "MID" ? 20 : 25;
+          if (randomInt(1, cardChance) === 1) p.yellowCards++;
+          if (randomInt(1, 60) === 1) p.redCards++;
 
-          // Penalties (rare event)
-          if (randomInt(1, 100) === 1) {
-              // Higher rating = better chance to score
+          // Penalties (FWD and MID more likely)
+          let penaltyChance = p.position === "FWD" ? 80 : p.position === "MID" ? 120 : 200;
+          if (randomInt(1, penaltyChance) === 1) {
               if(randomInt(0, 100) < p.rating) p.penalties++;
           }
 
-          // Freekicks (Very rare event, strict)
-          // Only players with high freekick rating should score often
-          if (randomInt(1, 300) === 1) { // Increased rarity from 150 to 300
+          // Freekicks (Very rare, position matters)
+          let fkChance = p.position === "FWD" ? 250 : p.position === "MID" ? 200 : 500;
+          if (randomInt(1, fkChance) === 1) {
               const fkRating = p.freekickRating || (p.rating - 10);
-              // Threshold: Random 0-100 must be less than (fkRating - 30). 
-              // So if fkRating is 90, need < 60 (60% chance if event occurs).
-              // If fkRating is 50, need < 20 (20% chance).
               if(randomInt(0, 100) < (fkRating - 30)) p.freekicks++;
           }
 
-          // Passing Stats (simulated per match)
-          // Base attempts: 20-60 per match depending on rating
-          const attempts = randomInt(20, 60);
+          // Passing Stats (position-based attempts)
+          let attempts;
+          if (p.position === "GK") attempts = randomInt(15, 30);
+          else if (p.position === "DEF") attempts = randomInt(30, 60);
+          else if (p.position === "MID") attempts = randomInt(50, 80);
+          else attempts = randomInt(20, 40); // FWD
+          
           p.passesAttempted += attempts;
           
-          // Completion rate depends on passingRating
           const passRating = p.passingRating || p.rating;
-          // Rating 60 -> 70%, Rating 99 -> 95%
           const accuracy = 70 + ((passRating - 60) / (99 - 60)) * 25;
           const completed = Math.round(attempts * (accuracy / 100));
           p.passesCompleted += completed;

@@ -230,14 +230,8 @@ function addPlayerToSelectedTeam() {
   const name = document.getElementById("newPlayerName").value.trim();
   if (!name) return alert("Enter player name!");
 
-  team.players.push({
-    name,
-    rating: getPlayerRating(name),
-    goals: 0,
-    assists: 0,
-    yellowCards: 0,
-    redCards: 0,
-  });
+  const playerData = getPlayerData(name);
+  team.players.push(createPlayerObject(playerData.name, playerData.rating, playerData.position));
 
   document.getElementById("newPlayerName").value = "";
   alert(`Added ${name} to ${team.name}!`);
@@ -304,6 +298,13 @@ function showTeamStats(id) {
     let cardBg = 'rgba(255,255,255,0.05)';
     let border = 'none';
     
+    // Position badge color
+    let posColor = '';
+    if (p.position === 'GK') posColor = '#fbc531';
+    else if (p.position === 'DEF') posColor = '#4cd137';
+    else if (p.position === 'MID') posColor = '#00d2d3';
+    else posColor = '#e84118'; // FWD
+    
     // VIP Colors for 95+
     if (p.rating >= 99) {
         nameColor = '#ff0000'; // Red for 99
@@ -323,7 +324,10 @@ function showTeamStats(id) {
              onclick="closePopup(); renderPlayerListUI();"
              onmouseover="this.style.transform='scale(1.05)'" 
              onmouseout="this.style.transform='scale(1)'">
-      <div style="color:${nameColor}; font-weight:bold; font-size: 1.1em; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${p.name}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="color:${nameColor}; font-weight:bold; font-size: 1.1em; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${p.name}</span>
+        <span style="background:${posColor}; color:#000; padding:2px 6px; border-radius:3px; font-size:0.7em; font-weight:bold;">${p.position}</span>
+      </div>
       <div style="font-size:0.9em; color:#aaa; margin-bottom: 5px;">Rating: <span style="color: ${p.rating >= 95 ? nameColor : 'gold'}; font-weight:bold;">${p.rating}</span></div>
       <div style="font-size: 0.85em; line-height: 1.4;">
         ⚽ ${p.goals} | 🅰️ ${p.assists}
@@ -423,9 +427,28 @@ function showStatsTab(tab) {
     if (tab !== 'passing' && valueFormatter(p).startsWith('0')) return; // Skip 0 stats for non-passing
     
     const color = `hsl(${randomInt(0, 360)}, 80%, 60%)`;
+    let nameStyle = `color:${color}; font-weight:bold; padding:8px;`;
+    
+    // Apply special styles for Icons and VIPs in stats view
+    if (p.type === "Icon") {
+        if (p.rating >= 95) {
+             // VIP Icon (Diamond/Platinum)
+             nameStyle = 'color: #E0FFFF; text-shadow: 0 0 8px rgba(224, 255, 255, 0.8); font-family: "Orbitron", sans-serif; font-weight:bold; padding:8px;';
+        } else {
+             // Normal Icon (Gold)
+             nameStyle = 'color: #F6E3BA; text-shadow: 0 0 5px rgba(246, 227, 186, 0.6); font-family: "Orbitron", sans-serif; font-weight:bold; padding:8px;';
+        }
+    } else if (p.rating >= 99) {
+        nameStyle = 'color: #ff4d4d; text-shadow: 0 0 5px rgba(255,0,0,0.4); font-weight:bold; padding:8px;';
+    } else if (p.rating >= 97) {
+        nameStyle = 'color: #00ffea; text-shadow: 0 0 5px rgba(0,255,234,0.4); font-weight:bold; padding:8px;';
+    } else if (p.rating >= 95) {
+        nameStyle = 'color: #ff00ea; text-shadow: 0 0 5px rgba(255,0,234,0.4); font-weight:bold; padding:8px;';
+    }
+
     html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
         <td style="padding:8px;">${i + 1}</td>
-        <td style="color:${color}; font-weight:bold; padding:8px;">${p.name}</td>
+        <td style="${nameStyle}">${p.name}</td>
         <td style="padding:8px;">${valueFormatter(p)}</td>
     </tr>`;
   });
@@ -630,18 +653,20 @@ function renderKnockoutBracket() {
         .bracket-container {
             display: flex;
             flex-direction: row;
-            overflow-x: auto;
+            overflow: auto;
             padding: 20px;
             gap: 40px;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: flex-start;
+            min-height: 600px;
         }
         .bracket-round {
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
+            justify-content: center;
             gap: 20px;
             min-width: 200px;
+            flex-shrink: 0;
         }
         .bracket-match-card {
             background: rgba(0, 43, 92, 0.8);
@@ -822,6 +847,7 @@ function renderPlayerListUI() {
             <thead>
                 <tr>
                     <th class="name-col">Player</th>
+                    <th title="Position">Pos</th>
                     <th title="Overall Rating">OVR</th>
                     <th title="Goals">G</th>
                     <th title="Assists">A</th>
@@ -839,8 +865,27 @@ function renderPlayerListUI() {
                     let rowStyle = '';
                     let nameStyle = '';
                     let ratingStyle = 'color: var(--primary-color); font-weight: bold;';
+                    
+                    // Position colors
+                    let posColor = '';
+                    if (p.position === 'GK') posColor = '#fbc531';
+                    else if (p.position === 'DEF') posColor = '#4cd137';
+                    else if (p.position === 'MID') posColor = '#00d2d3';
+                    else posColor = '#e84118'; // FWD
 
-                    if (p.rating >= 99) {
+                    if (p.type === "Icon") {
+                        if (p.rating >= 95) {
+                            // VIP Icon (Diamond/Platinum)
+                            rowStyle = 'background: linear-gradient(90deg, rgba(224, 255, 255, 0.2), transparent); border-left: 3px solid #E0FFFF;';
+                            nameStyle = 'color: #E0FFFF; text-shadow: 0 0 10px rgba(224, 255, 255, 0.8); font-family: "Orbitron", sans-serif; letter-spacing: 1px;';
+                            ratingStyle = 'color: #E0FFFF; font-weight: 800; text-shadow: 0 0 8px rgba(224, 255, 255, 0.6);';
+                        } else {
+                            // Normal Icon (Gold)
+                            rowStyle = 'background: linear-gradient(90deg, rgba(246, 227, 186, 0.15), transparent); border-left: 3px solid #F6E3BA;';
+                            nameStyle = 'color: #F6E3BA; text-shadow: 0 0 8px rgba(246, 227, 186, 0.6); font-family: "Orbitron", sans-serif; letter-spacing: 1px;';
+                            ratingStyle = 'color: #F6E3BA; font-weight: 800; text-shadow: 0 0 5px rgba(246, 227, 186, 0.5);';
+                        }
+                    } else if (p.rating >= 99) {
                         rowStyle = 'background: linear-gradient(90deg, rgba(255,0,0,0.1), transparent);';
                         nameStyle = 'color: #ff4d4d; text-shadow: 0 0 8px rgba(255,0,0,0.4);';
                         ratingStyle = 'color: #ff4d4d; font-weight: 800;';
@@ -857,6 +902,7 @@ function renderPlayerListUI() {
                     return `
                     <tr style="${rowStyle}">
                         <td class="name-col" style="${nameStyle}">${p.name}</td>
+                        <td class="stat-val" style="color: ${posColor}; font-weight: bold;">${p.position}</td>
                         <td class="rating-val" style="${ratingStyle}">${p.rating}</td>
                         <td class="stat-val">${p.goals}</td>
                         <td class="stat-val">${p.assists}</td>
