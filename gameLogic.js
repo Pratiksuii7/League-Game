@@ -7,12 +7,25 @@ let knockoutMatches = [];
 let knockoutResults = [];
 let knockoutHistory = [];
 let knockoutStage = 0;
+let seasonHistory = [];
+let globalRecords = {
+    topScorers: [], // { name, team, goals, season }
+    topAssisters: [], // { name, team, assists, season }
+    topTeamPoints: [], // { team, points, season }
+    topTeamGoals: [] // { team, goals, season }
+};
 
 const maxTeams = 64;
 
 // Load history
 const storedHistory = localStorage.getItem("matchHistory");
 if (storedHistory) matchHistory = JSON.parse(storedHistory);
+
+const storedSeasonHistory = localStorage.getItem("seasonHistory");
+if (storedSeasonHistory) seasonHistory = JSON.parse(storedSeasonHistory);
+
+const storedGlobalRecords = localStorage.getItem("globalRecords");
+if (storedGlobalRecords) globalRecords = JSON.parse(storedGlobalRecords);
 
 // --- UTILS ---
 function randomInt(min, max) {
@@ -402,12 +415,80 @@ function saveKnockoutResult(m, homeScore, awayScore) {
     m.away.stats.goalsFor += awayScore;
     m.away.stats.goalsAgainst += homeScore;
 
-    winner.stats.wins++;
+    if (homeScore > awayScore) {
+        m.home.stats.wins++;
+        m.away.stats.losses++;
+    } else {
+        m.away.stats.wins++;
+        m.home.stats.losses++;
+    }
 
-    // Distribute player stats (goals, assists, cards)
     distributePlayerStats(m, homeScore, awayScore);
 
-    // Save result
-    knockoutResults.push({ match: m, homeScore, awayScore, winner });
-    knockoutStage++;
+    knockoutResults.push({
+        stage: knockoutStage,
+        match: m,
+        homeScore,
+        awayScore,
+        winner
+    });
 }
+
+function updateGlobalRecords(seasonIndex) {
+    // 1. Top Scorers & Assisters
+    let allPlayers = [];
+    teams.forEach(t => {
+        t.players.forEach(p => {
+            allPlayers.push({ ...p, teamName: t.name, season: seasonIndex + 1 });
+        });
+    });
+
+    // Sort by goals
+    allPlayers.sort((a, b) => b.goals - a.goals);
+    // Take top 10 candidates from this season
+    const seasonTopScorers = allPlayers.slice(0, 10).map(p => ({
+        name: p.name,
+        team: p.teamName,
+        goals: p.goals,
+        season: p.season
+    }));
+
+    // Merge with global and keep top 10
+    globalRecords.topScorers = [...globalRecords.topScorers, ...seasonTopScorers]
+        .sort((a, b) => b.goals - a.goals)
+        .slice(0, 10);
+
+    // Sort by assists
+    allPlayers.sort((a, b) => b.assists - a.assists);
+    const seasonTopAssisters = allPlayers.slice(0, 10).map(p => ({
+        name: p.name,
+        team: p.teamName,
+        assists: p.assists,
+        season: p.season
+    }));
+
+    globalRecords.topAssisters = [...globalRecords.topAssisters, ...seasonTopAssisters]
+        .sort((a, b) => b.assists - a.assists)
+        .slice(0, 10);
+
+    // 2. Team Records
+    const seasonTeams = teams.map(t => ({
+        team: t.name,
+        points: t.stats.points,
+        goals: t.stats.goalsFor,
+        season: seasonIndex + 1
+    }));
+
+    // Top Points
+    globalRecords.topTeamPoints = [...globalRecords.topTeamPoints, ...seasonTeams]
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 10);
+
+    // Top Goals
+    globalRecords.topTeamGoals = [...globalRecords.topTeamGoals, ...seasonTeams]
+        .sort((a, b) => b.goals - a.goals)
+        .slice(0, 10);
+
+    localStorage.setItem("globalRecords", JSON.stringify(globalRecords));
+}
+

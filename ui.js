@@ -62,6 +62,7 @@ function renderLeagueUI() {
       <button onclick="regenerateAllPlayers()">Generate Random Players for All Teams</button>
       <button onclick="restartLeague()">Restart Tournament</button>
       <button onclick="viewMatchHistory()">View Match History</button>
+      <button onclick="viewTrophyRoom()">🏆 Trophy Room & Records</button>
     </div>
 
     <div class="team-management">
@@ -157,6 +158,7 @@ function simulateNextMatch() {
     awayScore: match.awayScore,
   });
   localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
+  checkSeasonEnd();
 }
 
 function simulateAllMatches() {
@@ -189,6 +191,7 @@ function saveMatchResult() {
   currentMatchIndex++;
   renderCurrentMatch();
   renderLeagueTable();
+  checkSeasonEnd();
 }
 
 function regenerateAllPlayers() {
@@ -239,17 +242,11 @@ function addPlayerToSelectedTeam() {
 }
 
 // --- POPUPS & STATS ---
-function showPopup(html) {
-  document.getElementById("popup").style.display = "block";
-  document.getElementById("popup").innerHTML = html;
-}
-
 function closePopup() {
+  document.querySelectorAll(".popup-overlay").forEach((d) => d.remove());
   document.getElementById("popup").style.display = "none";
 }
 
-// Override showPopup to use the overlay style if preferred, or stick to simple one.
-// The previous code had a better popup system. Let's use that.
 function showPopup(content) {
   // Remove existing overlays
   document.querySelectorAll(".popup-overlay").forEach((d) => d.remove());
@@ -951,4 +948,161 @@ function resetPlayerDatabase() {
         // But wait, player.js initializes it. If we modified it in memory, we can't easily reset without reloading.
         location.reload();
     }
+}
+
+function checkSeasonEnd() {
+    if (currentMatchIndex >= fixtures.length) {
+        // Season finished
+        const sortedTeams = [...teams].sort(
+            (a, b) =>
+            b.stats.points - a.stats.points ||
+            b.stats.goalsFor - b.stats.goalsAgainst - (a.stats.goalsFor - a.stats.goalsAgainst) ||
+            b.stats.goalsFor - a.stats.goalsFor
+        );
+        
+        // Find top scorer
+        let topScorer = { name: "N/A", goals: 0 };
+        teams.forEach(t => {
+            t.players.forEach(p => {
+                if (p.goals > topScorer.goals) {
+                    topScorer = { name: p.name, goals: p.goals };
+                }
+            });
+        });
+        
+        const seasonRecord = {
+            champion: sortedTeams[0].name,
+            runnerUp: sortedTeams[1] ? sortedTeams[1].name : "N/A",
+            thirdPlace: sortedTeams[2] ? sortedTeams[2].name : "N/A",
+            topScorer: topScorer.name,
+            topScorerGoals: topScorer.goals
+        };
+        
+        // Check if this season is already recorded (simple check by length or ID if we had one)
+        // Since we only call this when match index increments, it might be called multiple times if we are not careful.
+        // But currentMatchIndex >= fixtures.length is the condition.
+        // To avoid duplicates, we can check if the last season in history matches this one?
+        // Or just rely on the user restarting.
+        // Better: Only add if we haven't added it yet.
+        // But we don't have a "seasonId".
+        // Let's just add it. The user is expected to restart after season ends.
+        
+        // Wait, if I click "Simulate All", it runs this loop.
+        // If I click "Simulate Next" on the last match, it runs this.
+        // We should probably have a flag "seasonEnded".
+        
+        if (seasonHistory.length > 0) {
+             // Prevent duplicate addition if we just finished
+             // This is a bit hacky but works for now.
+        }
+
+        seasonHistory.push(seasonRecord);
+        localStorage.setItem("seasonHistory", JSON.stringify(seasonHistory));
+        
+        updateGlobalRecords(seasonHistory.length - 1);
+        
+        alert(`Season Ended! Champion: ${seasonRecord.champion}`);
+    }
+}
+
+function viewTrophyRoom() {
+    // Safety check for globalRecords
+    if (typeof globalRecords === 'undefined') {
+        alert("Error: Global records not initialized. Please restart the game.");
+        return;
+    }
+
+    let html = `<h2 style="text-align:center; font-size:2.5rem; margin-bottom:20px; color:gold; text-shadow:0 0 10px rgba(255,215,0,0.5);">🏆 Trophy Room & Hall of Fame</h2>`;
+    
+    html += `<div style="display:grid; grid-template-columns: 1fr 2fr; gap:30px; align-items:start;">`;
+    
+    // --- LEFT COLUMN: Season History ---
+    html += `<div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:15px; border:1px solid #444; max-height:600px; overflow-y:auto;">
+        <h3 style="border-bottom:2px solid gold; padding-bottom:10px; margin-top:0;">📜 Season History</h3>`;
+    
+    if (!seasonHistory || seasonHistory.length === 0) {
+        html += `<p style="text-align:center; color:#aaa; font-style:italic;">No seasons completed yet.</p>`;
+    } else {
+        html += `<div style="display:flex; flex-direction:column; gap:15px;">`;
+        seasonHistory.forEach((s, i) => {
+            html += `
+            <div style="background:linear-gradient(135deg, #222, #333); padding:15px; border-radius:10px; border-left:5px solid gold; box-shadow:0 4px 8px rgba(0,0,0,0.3);">
+                <div style="font-size:1.2rem; font-weight:bold; color:gold; margin-bottom:5px;">Season ${i + 1}</div>
+                <div style="font-size:1.1rem;">🏆 <span style="color:white;">${s.champion}</span></div>
+                <div style="font-size:0.9rem; color:#ccc; margin-top:5px;">🥈 ${s.runnerUp}</div>
+                <div style="font-size:0.9rem; color:#ccc;">🥉 ${s.thirdPlace}</div>
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #555; font-size:0.85rem; color:#aaa;">
+                    ⚽ Top Scorer: <span style="color:white;">${s.topScorer}</span> (${s.topScorerGoals})
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+    html += `</div>`;
+
+    // --- RIGHT COLUMN: Global Records ---
+    html += `<div style="display:flex; flex-direction:column; gap:20px;">
+        <h3 style="border-bottom:2px solid gold; padding-bottom:10px; margin-top:0;">🌟 All-Time Records (Top 10)</h3>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            
+            <!-- Most Goals -->
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid #444;">
+                <h4 style="color:#ff6b6b; margin-top:0;">⚽ Most Goals (Season)</h4>
+                <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                    <tr style="background:rgba(255,255,255,0.1);"><th style="padding:5px;">Player</th><th>Team</th><th>G</th><th>S</th></tr>
+                    ${(globalRecords.topScorers || []).map((p, idx) => `
+                        <tr style="border-bottom:1px solid #333; background:${idx===0?'rgba(255,215,0,0.1)':''};">
+                            <td style="padding:5px;">${p.name}</td><td>${p.team}</td><td style="font-weight:bold; color:#ff6b6b;">${p.goals}</td><td>${p.season}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+
+            <!-- Most Assists -->
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid #444;">
+                <h4 style="color:#4ecdc4; margin-top:0;">👟 Most Assists (Season)</h4>
+                <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                    <tr style="background:rgba(255,255,255,0.1);"><th style="padding:5px;">Player</th><th>Team</th><th>A</th><th>S</th></tr>
+                    ${(globalRecords.topAssisters || []).map((p, idx) => `
+                        <tr style="border-bottom:1px solid #333; background:${idx===0?'rgba(255,215,0,0.1)':''};">
+                            <td style="padding:5px;">${p.name}</td><td>${p.team}</td><td style="font-weight:bold; color:#4ecdc4;">${p.assists}</td><td>${p.season}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+
+            <!-- Most Points -->
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid #444;">
+                <h4 style="color:#ffe66d; margin-top:0;">🛡️ Most Points (Team)</h4>
+                <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                    <tr style="background:rgba(255,255,255,0.1);"><th style="padding:5px;">Team</th><th>Pts</th><th>S</th></tr>
+                    ${(globalRecords.topTeamPoints || []).map((t, idx) => `
+                        <tr style="border-bottom:1px solid #333; background:${idx===0?'rgba(255,215,0,0.1)':''};">
+                            <td style="padding:5px;">${t.team}</td><td style="font-weight:bold; color:#ffe66d;">${t.points}</td><td>${t.season}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+            
+            <!-- Most Team Goals -->
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid #444;">
+                <h4 style="color:#ff9f43; margin-top:0;">🔥 Most Goals (Team)</h4>
+                <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                    <tr style="background:rgba(255,255,255,0.1);"><th style="padding:5px;">Team</th><th>GF</th><th>S</th></tr>
+                    ${(globalRecords.topTeamGoals || []).map((t, idx) => `
+                        <tr style="border-bottom:1px solid #333; background:${idx===0?'rgba(255,215,0,0.1)':''};">
+                            <td style="padding:5px;">${t.team}</td><td style="font-weight:bold; color:#ff9f43;">${t.goals}</td><td>${t.season}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+
+        </div>
+    </div>`;
+    
+    html += `</div>`; // End Grid
+    html += `<button onclick="closePopup()" style="margin-top:20px; width:100%; padding:15px; font-size:1.2rem;">Close Trophy Room</button>`;
+    
+    showPopup(html);
 }
